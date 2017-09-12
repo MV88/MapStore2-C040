@@ -13,7 +13,7 @@ const {filter, and, property} = requestBuilder({wfsVersion: "1.1.0"});
 const {error, info, success} = require('../../MapStore2/web/client/actions/notifications');
 const {featureToRow, isSameFeature, checkFeature, uncheckFeature, getAreaFilter, isActiveTool,
     removeFeature, clearAllFeatures, getAreasLayer, getElementsLayer, getAreasGeometry,
-    addFeaturesToElementLayer, showQueryElementsError, getElementsFilter, addFeatureToAreaLayer,
+    addFeaturesToElementLayer, showQueryElementsError/*, getElementsFilter*/, addFeatureToAreaLayer,
     replaceFeatures, getCheckedElementsFromLayer, getSmallestFeature, showTimeoutError
 } = require('../utils/CantieriUtils');
 const axios = require('../../MapStore2/web/client/libs/ajax');
@@ -28,6 +28,9 @@ const {
 const { setControlProperty } = require('../../MapStore2/web/client/actions/controls');
 const { MAP_CONFIG_LOADED } = require('../../MapStore2/web/client/actions/config');
 const { changeMousePositionState } = require('../../MapStore2/web/client/actions/mousePosition');
+
+const {fetchServiceRESTUrlSelector, routingSelector/*, saveServiceRESTUrlSelector*/} = require('../selector/cantieri');
+
 
 const {getWFSFilterData} = require('../../MapStore2/web/client/epics/wfsquery');
 const {transaction, describeFeatureType} = require('../api/WFST');
@@ -118,13 +121,13 @@ const createAndAddLayers = (areasFeatures, store, checkedElementsFeatures) => {
     return Rx.Observable.from(actions);
 };
 
-
 module.exports = {
-    initLavoriPubbliciPlugin: ( action$ ) =>
-    action$.ofType(MAP_CONFIG_LOADED)
-    .switchMap( () => {
-        return Rx.Observable.of(setControlProperty("cantieri", "enabled", true), changeMousePositionState(false));
-    }),
+    initLavoriPubbliciPlugin: ( action$, store ) =>
+        action$.ofType(MAP_CONFIG_LOADED)
+        .filter(() => routingSelector(store.getState()).indexOf("llpp") !== -1)
+        .switchMap( () => {
+            return Rx.Observable.of(setControlProperty("cantieri", "enabled", true), changeMousePositionState(false));
+        }),
     updateCantieriByClick: ( action$, store ) =>
         action$.ofType(CLICK_ON_MAP)
             .filter(() => isActiveTool("pointSelection", store))
@@ -328,8 +331,7 @@ module.exports = {
                             return Rx.Observable.of([]);
                         }),
                     // fetch checked elements features
-                    Rx.Observable.fromPromise(axios.post(store.getState().cantieri.geoserverUrl + '?service=WFS&outputFormat=json&request=getFeature',
-                        getElementsFilter(store.getState().cantieri.checkedElements, store.getState().cantieri.elementsLayerName), {
+                    Rx.Observable.fromPromise(axios.get(fetchServiceRESTUrlSelector(store.getState()) + "/" + cantieriState.id, null, {
                             timeout: 60000,
                             headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}
                         }).then(r => r.data.features))
