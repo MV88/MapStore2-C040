@@ -106,7 +106,7 @@ module.exports = {
                 filter(
                     or(
                         checkedElements.map(el => {
-                            return and([property("ID").equalTo(el[0]), property("NOME_LIVELLO").equalTo(el[1])]);
+                            return and([property("ID").equalTo(el.ID_ELEMENTO), property("NOME_LIVELLO").equalTo(el.TIPOLOGIA)]);
                         })
                     )
                 )
