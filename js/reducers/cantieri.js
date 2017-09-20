@@ -55,9 +55,7 @@ function cantieri(state = {
                     }});
         }
         case UPDATE_CHECKED_ELEMENTS: {
-            return assign({}, state, { checkedElements:
-                [{"ID_ELEMENTO": 104618, "TIPOLOGIA": "EDIFICI"},
-                {"ID_ELEMENTO": 1362, "TIPOLOGIA": "PIANO_BACINO"}] });
+            return assign({}, state, { checkedElements: action.elements});
         }
         case SET_ACTIVE_DRAW_TOOL: {
             const activeDrawTool = action.activeDrawTool;

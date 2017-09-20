@@ -147,8 +147,10 @@ module.exports = {
             return Rx.Observable.fromPromise(axios.get(getRestUrl(serviceRESTUrlSelector(store.getState()), "get", cantieriState.id), null, {
                 timeout: 60000,
                 headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}
-            }).then(r => r.data.ELEMENTS))
-            .map((elements) => {
+            }).then(r => {
+                return r && r.data && r.data.ELEMENTS && r.data.ELEMENTS.length ? r.data.ELEMENTS : [];
+            }))
+            .switchMap((elements) => {
                 return Rx.Observable.of(
                     updateCheckedElements(elements),
                     setControlProperty("cantieri", "enabled", true),
@@ -311,7 +313,7 @@ module.exports = {
                     // fetch areas features
                     getWFSFeature(cantieriState.geoserverUrl, getAreaFilter(cantieriState.id, cantieriState.typology, cantieriState.areasLayerName))
                         .switchMap((response) => {
-                            if (response.data && response.data.features) {
+                            if (response.data && response.data.features && response.data.features.length) {
                                 return Rx.Observable.of(response.data.features.map(f => {
                                     return reprojectGeoJson(f, "EPSG:4326", store.getState().map.present.projection);
                                 }));
@@ -392,7 +394,7 @@ module.exports = {
                         describe
                     )).switchMap(() =>
                         Rx.Observable.fromPromise(axios.post(getRestUrl(serviceRESTUrlSelector(store.getState()), "post", null),
-                            prepareDataToSave(store.getState().cantieri.checkedElements, store.getState().cantieri.id), {
+                            prepareDataToSave(getCheckedElementsFromLayer(getElementsLayer(store)), store.getState().cantieri.id), {
                                 timeout: 60000,
                                 headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}
                             }).then(r => {
@@ -401,7 +403,7 @@ module.exports = {
                                 }
                                 return null;
                             }))
-                            .map((data) => {
+                            .switchMap((data) => {
                                 if (data) {
                                     return Rx.Observable.from([
                                         dataSaved(getCheckedElementsFromLayer(getElementsLayer(store)), cantierState.id, cantierState.typology ),
