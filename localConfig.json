@@ -297,7 +297,24 @@
         }
       },
       "Home",
-      "FeatureEditor", {
+      {
+             "name":"FeatureEditor",
+             "cfg": {
+               "customEditorsOptions": {
+                 "rules": [{
+                   "regex": {
+                     "attribute": "type",
+                     "typeName": "atlantis:landmarks"
+                   },
+                   "editor": "IndirizziEditor",
+                   "editorProps": {
+                     "forceSelection": true,
+                     "allowEmpty": false
+                   }
+                 }]
+               }
+             }
+           }, {
         "name": "QueryPanel",
         "cfg": {
             "activateQueryTool": true,
