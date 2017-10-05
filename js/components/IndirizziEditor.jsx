@@ -8,9 +8,10 @@
 const React = require('react');
 const PropTypes = require('prop-types');
 const AttributeEditor = require('../../MapStore2/web/client/components/data/featuregrid/editors/AttributeEditor');
-const ControlledCombobox = require('../../MapStore2/web/client/components/misc/combobox/ControlledCombobox');
-const {head} = require('lodash');
-const assign = require('object-assign');
+// const AsyncCombobox = require('../../MapStore2/web/client/components/misc/combobox/AsyncCombobox');
+const {AutocompleteCombobox} = require('../../MapStore2/web/client/components/misc/AutocompleteCombobox');
+const {createIndirizziStream} = require('../observables/asyncStream');
+
 
 class IndirizziEditor extends AttributeEditor {
     static propTypes = {
@@ -45,34 +46,19 @@ class IndirizziEditor extends AttributeEditor {
         };
         this.getValue = () => {
             const updated = super.getValue();
-            const {forceSelection} = require('../../../../utils/featuregrid/EditorRegistry');
-
-            if (this.props.forceSelection) {
-                return {[this.props.column.key]: forceSelection({
-                    oldValue: this.props.defaultOption,
-                    changedValue: updated[this.props.column && this.props.column.key],
-                    data: this.props.values,
-                    allowEmpty: this.props.allowEmpty})};
-            }
-            if (this.props.allowEmpty) {
-                return updated;
-            }
-            // this case is only when forceSelection and allowEmpty are falsy, but this is contractidtory!! so the default option is used
-            return {[this.props.column.key]: forceSelection({
-                oldValue: this.props.defaultOption,
-                changedValue: updated[this.props.column && this.props.column.key],
-                data: this.props.values,
-                allowEmpty: this.props.allowEmpty})};
+            return updated;
         };
     }
     render() {
-        const data = this.props.values.map(v => {return {label: v, value: v}; });
+        /*const data = this.props.values.map(v => {return {label: v, value: v}; });
 
         const props = assign({}, {...this.props}, {
             data,
-            defaultOption: this.props.defaultOption || head(this.props.values)
-        });
-        return <ControlledCombobox {...props} filter="contains"/>;
+            defaultOption: this.props.defaultOption || head(this.props.values),
+            autocompleteStreamFactory: createIndirizziStream
+        });*/
+        return <AutocompleteCombobox {...this.props} filter="contains" autocompleteStreamFactory={createIndirizziStream} valueField="CODICE_CONTROLLO"/>;
+        // return <AsyncCombobox {...this.props} filter="contains" autocompleteStreamFactory={createIndirizziStream}/>;
     }
 }
 

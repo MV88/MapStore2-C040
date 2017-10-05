@@ -9,7 +9,7 @@ const Rx = require('rxjs');
 const React = require('react');
 const { MAP_CONFIG_LOADED } = require('../../MapStore2/web/client/actions/config');
 const { register, clean } = require('../../MapStore2/web/client/utils/featuregrid/EditorRegistry');
-const IndirizziEditor = require('../js/components/IndirizziEditor');
+const IndirizziEditor = require('../components/IndirizziEditor');
 
 const editors = {
     "IndirizziEditor": {
@@ -25,15 +25,15 @@ const editors = {
 */
 module.exports = {
     addCustomEditors: (action$) =>
-    action$.ofType(MAP_CONFIG_LOADED)
-    .switchMap(() => {
-        clean();
-        Object.keys(editors).forEach(ed => {
-            register({
-                name: ed,
-                editors: editors[ed]
+        action$.ofType(MAP_CONFIG_LOADED)
+        .switchMap(() => {
+            clean();
+            Object.keys(editors).forEach(ed => {
+                register({
+                    name: ed,
+                    editors: editors[ed]
+                });
             });
-        });
-        return Rx.Observable.empty();
-    })
+            return Rx.Observable.empty();
+        })
 };
