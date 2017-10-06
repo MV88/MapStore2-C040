@@ -9,6 +9,7 @@
 const Rx = require('rxjs');
 const {API} = require('../../MapStore2/web/client/api/searchText');
 const assign = require('object-assign');
+const {isNil} = require('lodash');
 const {getParsedUrl} = require('../../MapStore2/web/client/utils/ConfigUtils');
 const {generateTemplateString} = require('../../MapStore2/web/client/utils/TemplateUtils');
 
@@ -18,28 +19,42 @@ const {generateTemplateString} = require('../../MapStore2/web/client/utils/Templ
  * @return {external:Observable} the stream used for fetching data for the Indirizzi editor
 */
 
-const textIntoFilter = ({searchText, staticFilter, blacklist, item, queriableAttributes, predicate} ) => {
-    // split into words and remove blacklisted words
+const textIntoFilter = ({searchText, staticFilter, blacklist, item} ) => {
     const staticFilterParsed = generateTemplateString(staticFilter || "")(item);
+    const regAddress = /^([a-zA-Z\s'\\\é\è\ò\à\ù\ì]*)/g;
+    const regCivic = /(\d{1,4}[a-zA-Z]{0,2})/g;
+    const regCCode = /([a-zA-Z]?\d){0,10}/g;
     let searchWords = searchText.split(" ").filter(w => w).filter( w => blacklist.indexOf(w.toLowerCase()) < 0 );
 
-    // if the array searchWords is empty, then use the full searchText
-    if (searchWords.length === 0 ) {
-        searchWords = !!searchText ? [searchText] : [];
+    let matchedAddress = regAddress.exec(searchWords.join(""));
+    let matchedCivic = regCivic.exec(searchText);
+    let matchedCCode = regCCode.exec(searchText);
+    let matches = [];
+    let filter = "( ";
+    if (!isNil(matchedAddress) && matchedAddress[0] !== "" ) {
+        matches.push("DESVIA ILIKE " + `'%${matchedAddress[0]}%'`);
     }
-    let filter;
-    if (searchWords.length > 0 ) {
-        /*    filter = "(".concat( `${queriableAttributes[0]} ${predicate} '%${searchWords[0].replace("'", "''")}%'`).concat(`${searchWords[1]} ${predicate} '%${searchWords[1].replace("'", "''")}%'`)
-        .join(" OR ")).join(') AND (')).concat(")");*/
-
-        filter = "(".concat( searchWords.map( (w) => queriableAttributes.map( attr => `${attr} ${predicate} '%${w.replace("'", "''")}%'`).join(" OR ")).join(') AND (')).concat(")");
+    if (!isNil(matchedCivic) && matchedCivic[0] !== "" ) {
+        matches.push("TESTO ILIKE " + `'%${matchedCivic[0]}%'`);
     }
-
+    if (matches.length === 2) {
+        filter += matches.join( " AND ");
+    }
+    if (matches.length === 1) {
+        filter += matches[0];
+    }
+    if (!isNil(matchedCCode) && matchedCCode[0] !== "" ) {
+        filter += " OR CODICE_CONTROLLO ILIKE " + `'%${matchedCCode[0]}%'`;
+    }
+    filter += ")";
     filter = filter ? filter.concat(staticFilterParsed) : staticFilterParsed || null;
     return filter;
 };
 
 const createIndirizziStream = (props$) => props$
+    .debounce(props => Rx.Observable.timer(props.delayDebounce || 0))/*
+    .throttle(props => Rx.Observable.timer(props.delayDebounce || 0))
+    .merge(props$.debounce(props => Rx.Observable.timer(props.delayDebounce || 0)))*/
     .switchMap((p) => {
         if (p.performFetch) {
 
@@ -56,7 +71,8 @@ const createIndirizziStream = (props$) => props$
                 params: {
                     timeout: 60000,
                     headers: {'Accept': 'application/json', 'Content-Type': 'application/xml'}
-                }
+                },
+                maxFeatures: 5
             });
             return Rx.Observable.fromPromise((API.Utils.getService("wfs")(p.value, serviceOptions)
                 .then( features => {

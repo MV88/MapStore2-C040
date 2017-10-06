@@ -8,9 +8,9 @@
 const React = require('react');
 const PropTypes = require('prop-types');
 const AttributeEditor = require('../../MapStore2/web/client/components/data/featuregrid/editors/AttributeEditor');
-// const AsyncCombobox = require('../../MapStore2/web/client/components/misc/combobox/AsyncCombobox');
-const {AutocompleteCombobox} = require('../../MapStore2/web/client/components/misc/AutocompleteCombobox');
+const AsyncCombobox = require('./combobox/AsyncCombobox');
 const {createIndirizziStream} = require('../observables/asyncStream');
+const IndirizziItem = require('./combobox/IndirizziItem');
 
 
 class IndirizziEditor extends AttributeEditor {
@@ -20,7 +20,7 @@ class IndirizziEditor extends AttributeEditor {
         defaultOption: PropTypes.string,
         forceSelection: PropTypes.bool,
         allowEmpty: PropTypes.bool,
-        inputProps: PropTypes.object,
+        itemComponent: PropTypes.function,
         isValid: PropTypes.func,
         onBlur: PropTypes.func,
         typeName: PropTypes.string,
@@ -33,6 +33,7 @@ class IndirizziEditor extends AttributeEditor {
         dataType: "string",
         values: [],
         forceSelection: true,
+        itemComponent: IndirizziItem,
         allowEmpty: true
     };
     constructor(props) {
@@ -50,15 +51,7 @@ class IndirizziEditor extends AttributeEditor {
         };
     }
     render() {
-        /*const data = this.props.values.map(v => {return {label: v, value: v}; });
-
-        const props = assign({}, {...this.props}, {
-            data,
-            defaultOption: this.props.defaultOption || head(this.props.values),
-            autocompleteStreamFactory: createIndirizziStream
-        });*/
-        return <AutocompleteCombobox {...this.props} filter="contains" autocompleteStreamFactory={createIndirizziStream} valueField="CODICE_CONTROLLO"/>;
-        // return <AsyncCombobox {...this.props} filter="contains" autocompleteStreamFactory={createIndirizziStream}/>;
+        return <AsyncCombobox {...this.props} filter="contains" autocompleteStreamFactory={createIndirizziStream}/>;
     }
 }
 
