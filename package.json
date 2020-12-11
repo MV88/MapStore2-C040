@@ -27,7 +27,7 @@
     }
   },
   "devDependencies": {
-    "@mapstore/project": "1.0.0"
+    "@mapstore/project": "git+https://github.com/mv88/mapstore-project.git#12628551ee01bab1e5e72c2b6568472fa189aeec"
   },
   "dependencies": {
     "@turf/area": "4.1.0",

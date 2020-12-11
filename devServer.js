@@ -1,36 +1,38 @@
-module.exports = {
+module.exports = ({proxy}) => ({
     proxy: {
-        '/rest': {
-            target: "https://dev.mapstore.geo-solutions.it/mapstore",
-            secure: false,
-            headers: {
-                host: "dev.mapstore.geo-solutions.it"
-            }
+        ...proxy,
+        '/rest/geostore': {
+            target: "http://vm-linuxgeofetest.comune.genova.it",
+            pathRewrite: {'^/rest/geostore': '/MapStore2/rest/geostore'}
+        },
+        '/MapStore2/proxy': {
+            target: "http://vm-linuxgeofetest.comune.genova.it"
         },
         '/pdf': {
-            target: "https://dev.mapstore.geo-solutions.it/mapstore",
+            target: "http://vm-linuxgeofetest.comune.genova.it/MapStore2"
+        },
+        '/MapStore2/pdf': {
+            target: "http://vm-linuxgeofetest.comune.genova.it"
+        },
+        '/geoserver/': {
+            target: "https://mappe.comune.genova.it",
             secure: false,
             headers: {
-                host: "dev.mapstore.geo-solutions.it"
+                host: "mappe.comune.genova.it"
             }
         },
-        '/mapstore/pdf': {
-            target: "https://dev.mapstore.geo-solutions.it",
+        '/geoserver-test/': {
+            target: "http://vm-linuxgeofetest.comune.genova.it"
+        },
+        '/geonetwork': {
+            target: "https://mappe.comune.genova.it",
             secure: false,
             headers: {
-                host: "dev.mapstore.geo-solutions.it"
+                host: "mappe.comune.genova.it"
             }
         },
-        '/proxy': {
-            target: "https://dev.mapstore.geo-solutions.it/mapstore",
-            secure: false,
-            headers: {
-                host: "dev.mapstore.geo-solutions.it"
-            }
-        },
-        '/docs': {
-            target: "http://localhost:8081",
-            pathRewrite: {'/docs': '/mapstore/docs'}
+        '/geofence': {
+            target: "http://vm-linuxgeofetest.comune.genova.it"
         }
     }
-};
+});

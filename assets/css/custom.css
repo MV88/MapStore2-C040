@@ -58,3 +58,8 @@
     position: relative;
     transform: translateY(-50%);
 }
+
+#page-cantieri .MapSearchBar .input-group .search-toolbar-options {
+    display: flex;
+    align-items: center;
+}
